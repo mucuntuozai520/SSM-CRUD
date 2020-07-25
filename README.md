@@ -1,5 +1,5 @@
 # 员工信息管理平台介绍
-基于ssm开发的个人博客 所用技术栈：
+基于SSM开发的个人博客 所用技术栈：
 
 前端：html+css+javaScript，jQuery,Ajax,BootStrap。
 

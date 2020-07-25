@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<context:component-scan base-package="com.linfeng.dao,com.linfeng.entity,com.linfeng.service,com.linfeng.utils"></context:component-scan>
+
+	<context:property-placeholder location="classpath:db.properties"/>
+	
+	<bean id="PooledDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="jdbcUrl" value="${url}"></property>
+		<property name="driverClass" value="${driver}"></property>
+		<property name="user" value="${user}"></property>
+		<property name="password" value="${password}"></property>
+	</bean>
+	
+	<bean id="SqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:conf.xml"></property>
+		<property name="dataSource" ref="PooledDataSource"></property>
+		<property name="mapperLocations" value="classpath:mapper/*.xml"></property>
+		<property name="typeAliasesPackage" value="com.linfeng.entity"></property>
+	</bean>
+	
+	<bean  class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="sqlSessionFactoryBeanName" value="SqlSessionFactory" ></property>
+		<property name="basePackage" value="com.linfeng.dao"></property>
+	</bean>
+	<!-- 批量添加数据 -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg name="sqlSessionFactory" ref="SqlSessionFactory"></constructor-arg>
+		<constructor-arg name="executorType" value="BATCH"></constructor-arg>
+	</bean>
+	
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" >
+		<property name="dataSource" ref="PooledDataSource"></property>
+	</bean>
+	
+	<aop:config>
+		<aop:pointcut expression="execution(* com.linfeng.service..*(..))" id="txPointcut"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut"/>
+	</aop:config>
+
+	<tx:advice id="txAdvice" transaction-manager="transactionManager" >
+		<tx:attributes>
+			<tx:method name="*"/>
+			<tx:method name="get*" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	
+</beans>
